@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaliApp Final</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(to bottom, #6a11cb, #2575fc);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  padding-top:20px;
+  color:#fff;
+  overflow-x:hidden;
+}
+
+.container {
+  background:#fff;
+  color:#333;
+  padding:20px;
+  border-radius:20px;
+  width:450px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+
+input {
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:16px;
+  transition: all 0.2s;
+}
+input:focus { border-color:#2575fc; transform:scale(1.02); }
+
+button {
+  width:100%;
+  padding:12px;
+  background:#28a745;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:10px;
+  font-size:16px;
+  transition: all 0.2s;
+}
+button:hover { background:#218838; transform:scale(1.05); }
+
+.dashboard { display:none; margin-top:20px; }
+
+.link { color:#2575fc; text-decoration:underline; cursor:pointer; }
+
+.task {
+  background:#f0f0f0;
+  padding:12px;
+  margin:8px 0;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+  font-weight:600;
+  transition: transform 0.2s, background 0.2s;
+}
+.task:hover { transform:scale(1.03); background:#e0e0ff; }
+
+h2,h3 { text-align:center; margin-bottom:10px; }
+
+.team-member {
+  background:#e9e9e9;
+  padding:10px;
+  margin:5px 0;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  transition: all 0.2s;
+  cursor:pointer;
+}
+
+.team-member.level1 { background:#d1e7dd; }
+.team-member.level2 { background:#fff3cd; }
+.team-member.level3 { background:#f8d7da; }
+.team-member.level4 { background:#cfe2ff; }
+.team-member.level5 { background:#ffd6a5; }
+
+.team-member:hover {
+  transform:scale(1.05);
+  box-shadow:0 6px 15px rgba(0,0,0,0.35);
+}
+
+/* نافذة مكافأة المستوى */
+#levelUpPopup {
+  display:none;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  background:rgba(255,255,255,0.95);
+  padding:30px;
+  border-radius:25px;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,0.6);
+  z-index:999;
+  animation: popUp 0.5s ease;
+}
+
+#levelUpPopup h2 { color:#2575fc; font-size:26px; }
+#levelUpPopup button {
+  background:#2575fc;
+  margin-top:15px;
+  font-size:18px;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:10px 25px;
+  cursor:pointer;
+}
+
+@keyframes popUp {
+  0% { transform:translate(-50%, -60%) scale(0.5); opacity:0; }
+  100% { transform:translate(-50%, -50%) scale(1); opacity:1; }
+}
+
+/* تأثير فلاش عند الربح */
+.flash {
+  animation: flashEffect 0.5s ease;
+}
+@keyframes flashEffect {
+  0% { background-color:#fff4a1; }
+  50% { background-color:#fff; }
+  100% { background-color:#fff4a1; }
+}
+
+#dailyCountdown { text-align:center; font-weight:bold; margin-bottom:15px; font-size:18px; color:#2575fc; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="login">
+    <h2>MaliApp</h2>
+    <input type="text" id="userEmail" placeholder="إيميل أو هاتف">
+    <input type="password" id="userPass" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+  </div>
+
+  <div class="dashboard">
+    <h2>مرحبا بك!</h2>
+    <p>رصيدك المالي: <span id="balance">0</span> 💰</p>
+    <p>رابط دعوتك: <span class="link" onclick="copyLink()" id="myLink"></span> 🔗</p>
+
+    <div id="dailyCountdown">⏳ وقت انتهاء المهام اليومية: <span id="countdown">24:00:00</span></div>
+
+    <h3>المهام اليومية 📋</h3>
+    <div id="tasks"></div>
+
+    <h3>تسجيل صديق عن طريق رابطك 👥</h3>
+    <input type="text" id="newUserEmail" placeholder="إيميل أو هاتف الصديق">
+    <button onclick="registerFriend()">تسجيل صديق</button>
+
+    <h3>سحب مالي وهمي 💸</h3>
+    <input type="number" id="withdrawAmount" placeholder="المبلغ المراد سحبه">
+    <button onclick="withdraw()">سحب</button>
+
+    <h3>أعضاء فريقك 🏆</h3>
+    <div id="teamList"></div>
+  </div>
+</div>
+
+<div id="levelUpPopup">
+  <h2>🎉 تهانينا! وصلت لمستوى جديد! 🎉</h2>
+  <p>لقد حصلت على مكافأة: <span id="levelReward">0</span> 💰</p>
+  <button onclick="closeLevelPopup()">ممتاز!</button>
+</div>
+
+<!-- أصوات -->
+<audio id="taskSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+<audio id="levelSound" src="https://freesound.org/data/previews/466/466365_8386270-lq.mp3"></audio>
+
+<script>
+let balance = 0;
+let referralCode;
+let team = [];
+let tasksData = [
+  {title:"فتح التطبيق 5 مرات", reward:10},
+  {title:"دعوة صديق", reward:10},
+  {title:"مشاهدة فيديو قصير", reward:10},
+  {title:"كتابة تعليق", reward:8},
+  {title:"مشاركة التطبيق", reward:12},
+  {title:"تجربة ميزة جديدة", reward:15}
+];
+
+let countdownSeconds = 24*60*60; // 24 ساعة
+
+// localStorage
+if(localStorage.getItem('mali_balance')) balance = parseInt(localStorage.getItem('mali_balance'));
+if(localStorage.getItem('mali_referral')) referralCode = localStorage.getItem('mali_referral');
+else { referralCode = Math.floor(Math.random()*100000); localStorage.setItem('mali_referral', referralCode); }
+if(localStorage.getItem('mali_team')) team = JSON.parse(localStorage.getItem('mali_team'));
+
+// login
+function login() {
+  const email = document.getElementById('userEmail').value;
+  const pass = document.getElementById('userPass').value;
+  if(email && pass){
+    document.querySelector('.login').style.display = 'none';
+    document.querySelector('.dashboard').style.display = 'block';
+    document.getElementById('myLink').innerText = `https://maliapp.com/ref=${referralCode}`;
+    updateBalance();
+    renderTeam();
+    generateDailyTasks();
+    startCountdown();
+  } else alert('رجاءً املأ جميع الحقول');
+}
+
+// copy link
+function copyLink() {
+  const link = document.getElementById('myLink').innerText;
+  navigator.clipboard.writeText(link);
+  alert('تم نسخ الرابط!');
+}
+
+// update balance
+function updateBalance() {
+  document.getElementById('balance').innerText = balance;
+  localStorage.setItem('mali_balance', balance);
+}
+
+// play sound
+function playSound(id){ document.getElementById(id).play(); }
+
+// complete task
+function completeTask(button, reward){
+  balance += reward;
+  button.disabled = true;
+  button.innerText = "تم الإتمام ✔️";
+  updateBalance();
+  button.classList.add('flash');
+  setTimeout(()=>button.classList.remove('flash'),500);
+  playSound('taskSound');
+}
+
+// generate tasks
+function generateDailyTasks(){
+  const container = document.getElementById('tasks');
+  container.innerHTML = '';
+  let shuffled = tasksData.sort(() => 0.5 - Math.random());
+  let daily = shuffled.slice(0,3);
+  daily.forEach(task => {
+    const div = document.createElement('div');
+    div.className = 'task';
+    const btn = document.createElement('button');
+    btn.innerText = "إتمام";
+    btn.onclick = () => completeTask(btn, task.reward);
+    div.innerHTML = `<span>📌 ${task.title} (ربح: ${task.reward} 💰)</span>`;
+    div.appendChild(btn);
+    container.appendChild(div);
+  });
+}
+
+// register friend + level
+function registerFriend(){
+  const friendEmail = document.getElementById('newUserEmail').value;
+  if(friendEmail){
+    alert(`تم تسجيل ${friendEmail} عن طريق رابطك!`);
+    balance += 10;
+    const level = Math.floor((team.length + 1)/3) + 1;
+    team.push({name: friendEmail, balance:10, level:level});
+    localStorage.setItem('mali_team', JSON.stringify(team));
+    updateBalance();
+    renderTeam();
+    checkLevelReward(level);
+    document.getElementById('newUserEmail').value = '';
+  } else alert('أدخل إيميل أو رقم الهاتف للصديق');
+}
+
+// render team
+function renderTeam(){
+  const container = document.getElementById('teamList');
+  container.innerHTML = '';
+  team.forEach(member=>{
+    const div = document.createElement('div');
+    div.className = `team-member level${member.level}`;
+    div.innerHTML = `<span>👤 ${member.name}</span><span>💰 ${member.balance} | 🏅 مستوى ${member.level}</span>`;
+    container.appendChild(div);
+  });
+}
+
+// withdraw
+function withdraw(){
+  const amount = parseInt(document.getElementById('withdrawAmount').value);
+  if(!amount || amount <=0){ alert('أدخل مبلغ صحيح'); return; }
+  if(amount > balance){ alert('الرصيد غير كافي'); return; }
+  balance -= amount;
+  updateBalance();
+  alert(`تم سحب ${amount} 💰 وهمي`);
+  document.getElementById('withdrawAmount').value = '';
+}
+
+// level reward
+function checkLevelReward(level){
+  let reward=0;
+  if(level===2) reward=20;
+  else if(level===3) reward=30;
+  else if(level===4) reward=50;
+  else if(level>=5) reward=100;
+
+  if(reward>0){
+    balance += reward;
+    updateBalance();
+    document.getElementById('levelReward').innerText = reward;
+    document.getElementById('levelUpPopup').style.display='block';
+    playSound('levelSound');
+  }
+}
+
+function closeLevelPopup(){ document.getElementById('levelUpPopup').style.display='none'; }
+
+// countdown daily
+function startCountdown(){
+  setInterval(()=>{
+    countdownSeconds--;
+    if(countdownSeconds<=0){ countdownSeconds=24*60*60; generateDailyTasks(); alert("✅ تم تحديث المهام اليومية!"); }
+    let h=Math.floor(countdownSeconds/3600);
+    let m=Math.floor((countdownSeconds%3600)/60);
+    let s=countdownSeconds%60;
+    document.getElementById('countdown').innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  },1000);
+}
+</script>
+
+</body>
+</html>
