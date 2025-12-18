@@ -6,7 +6,60 @@
 <title>MaliApp Final</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfMUa-8vsUZ_1r5F79iSKOKqMre99lwbI",
+    authDomain: "maliapp-63f91.firebaseapp.com",
+    projectId: "maliapp-63f91",
+    storageBucket: "maliapp-63f91.appspot.com",
+    messagingSenderId: "901870433172",
+    appId: "1:901870433172:web:325b2312af72099279d581"
+  };<script>
+function register() {
+  const email = document.getElementById("userEmail").value;
+  const password = document.getElementById("userPass").value;
+
+  if (!email || !password) {
+    alert("عمر الخانات");
+    return;
+  }
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      alert("تم إنشاء الحساب بنجاح 🎉");
+      document.querySelector('.login').style.display = 'none';
+      document.querySelector('.dashboard').style.display = 'block';
+    })
+    .catch(error => {
+      alert(error.message);
+    });
+}<script>
+function login() {
+  const email = document.getElementById("userEmail").value;
+  const password = document.getElementById("userPass").value;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      alert("مرحبا بيك ❤️");
+      document.querySelector('.login').style.display = 'none';
+      document.querySelector('.dashboard').style.display = 'block';
+    })
+    .catch(error => {
+      alert(error.message);
+    });
+}
+</script>
+</script>
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+</script>
 body {
   font-family: 'Cairo', sans-serif;
   background: linear-gradient(to bottom, #6a11cb, #2575fc);
@@ -150,8 +203,8 @@ h2,h3 { text-align:center; margin-bottom:10px; }
     <h2>MaliApp</h2>
     <input type="text" id="userEmail" placeholder="إيميل أو هاتف">
     <input type="password" id="userPass" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
-  </div>
+    <button onclick="register()">تسجيل حساب</button>
+<button onclick="login()">دخول</button>
 
   <div class="dashboard">
     <h2>مرحبا بك!</h2>
